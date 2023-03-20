@@ -9,14 +9,20 @@ namespace ServerCurrency
         static List<Socket> clientSockets = new List<Socket>();
         static void Main(string[] args)
         {
-            IPEndPoint serverPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 80);
-            Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
-            serverSocket.Bind(serverPoint);
-            serverSocket.Listen(1000);
+            try
+            {
+                IPEndPoint serverPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 80);
+                Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.IP);
+                serverSocket.Bind(serverPoint);
+                serverSocket.Listen(1000);
 
-            serverSocket.BeginAccept(AcceptConnectionCallback, serverSocket);
-
-
+                serverSocket.BeginAccept(AcceptConnectionCallback, serverSocket);
+            }
+            catch (Exception ex)
+            { 
+                Console.WriteLine(ex.Message);
+            }
+            Console.ReadLine();
         }
 
         static void AcceptConnectionCallback(IAsyncResult result)
@@ -45,8 +51,10 @@ namespace ServerCurrency
                 string answer = CurrencyList.GetValue(currencys[0], currencys[1]).ToString();
                 byte[] senddata = Encoding.UTF8.GetBytes(answer);
                 client.BeginSend(senddata, 0, senddata.Length, SocketFlags.None, ClientSendMessageCallback, client);
-                /*проверку на закрытие соединения*/
-                client.BeginReceive(data, 0, data.Length, SocketFlags.None, ClientReciveMessageCallback, new ClientMessage(client, data));
+                if (client != null)
+                { 
+                    client.BeginReceive(data, 0, data.Length, SocketFlags.None, ClientReciveMessageCallback, new ClientMessage(client, data));
+                }
             }
         }
 
