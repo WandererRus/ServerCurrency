@@ -41,6 +41,7 @@ namespace ServerCurrency
                 byte[] data = clientMessage.GetData();
                 client.EndReceive(result);
                 string message = Encoding.UTF8.GetString(data);
+                string[] currencys = message.Split(' ');
 
                 /*отправка данных клиенту*/
                 /*проверку на закрытие соединения*/
@@ -69,31 +70,43 @@ namespace ServerCurrency
 
     class CurrencyList
     {
-        double EUR = 82.3736;
-        double USD = 77.2422;
-        double GBP = 93.7720;
+        static double EUR = 82.3736;
+        static double USD = 77.2422;
+        static double GBP = 93.7720;
 
-        public double USDToEUR()
+        static public double GetValue(string first, string second)
+        {
+            double result = 0;
+            switch (first) 
+            {
+                case "EUR": if (second == "USD") { result = EURToUSD(); } else { result = EURToGBP(); } break;
+                case "USD": if (second == "EUR") { result = USDToEUR(); } else { result = USDToGBP(); } break;
+                case "GBP": if (second == "EUR") { result = GBPToEUR(); } else { result = GBPToUSD(); } break;
+            }
+            return result;
+        }
+
+        static double USDToEUR()
         {
             return USD / EUR;
         }
-        public double USDToGBP()
+        static double USDToGBP()
         {
             return USD / GBP;
         }
-        public double GBPToUSD()
+        static double GBPToUSD()
         {
             return GBP / USD;
         }
-        public double GBPToEUR()
+        static double GBPToEUR()
         {
             return GBP / EUR;
         }
-        public double EURToGBP()
+        static double EURToGBP()
         {
             return EUR / GBP;
         }
-        public double EURToUSD()
+        static double EURToUSD()
         {
             return EUR / USD;
         }
