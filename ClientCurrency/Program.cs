@@ -36,7 +36,24 @@ namespace ClientCurrency
                                 clientSocket.Send(Encoding.UTF8.GetBytes(values[0] + " " + values[1] + " "));
                                 byte[] buffer = new byte[1024];
                                 clientSocket.Receive(buffer);
-                                Console.WriteLine($"В {values[0]} содержится {Encoding.UTF8.GetString(buffer).TrimEnd()} {values[1]}");
+                                int counter = 0;
+                                foreach(byte b in buffer)
+                                {
+                                    if (b != 0)
+                                    { counter++; }
+                                    else
+                                    { break; }
+                                }
+                                byte[] answer = new byte[counter];
+                                counter = 0;
+                                foreach (byte b in buffer)
+                                {
+                                    if (b != 0)
+                                    { answer[counter] = b; counter++; }
+                                    else
+                                    { break; }
+                                }
+                                Console.WriteLine($"В {values[0]} содержится {Encoding.UTF8.GetString(answer)} {values[1]}");
                             }
                             else
                             {
