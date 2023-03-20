@@ -42,10 +42,20 @@ namespace ServerCurrency
                 client.EndReceive(result);
                 string message = Encoding.UTF8.GetString(data);
                 string[] currencys = message.Split(' ');
-
-                /*отправка данных клиенту*/
+                string answer = CurrencyList.GetValue(currencys[0], currencys[1]).ToString();
+                byte[] senddata = Encoding.UTF8.GetBytes(answer);
+                client.BeginSend(senddata, 0, senddata.Length, SocketFlags.None, ClientSendMessageCallback, client);
                 /*проверку на закрытие соединения*/
                 client.BeginReceive(data, 0, data.Length, SocketFlags.None, ClientReciveMessageCallback, new ClientMessage(client, data));
+            }
+        }
+
+        static void ClientSendMessageCallback(IAsyncResult result)
+        {
+            if (result.AsyncState != null) 
+            {
+                Socket client = (Socket)result.AsyncState;
+                client.EndSend(result);
             }
         }
     }
@@ -68,7 +78,7 @@ namespace ServerCurrency
         }
     }
 
-    class CurrencyList
+    static class CurrencyList
     {
         static double EUR = 82.3736;
         static double USD = 77.2422;
