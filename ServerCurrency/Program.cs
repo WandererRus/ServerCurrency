@@ -6,7 +6,6 @@ namespace ServerCurrency
 {
     internal class Program
     {
-        static List<Socket> clientSockets = new List<Socket>();
         static void Main(string[] args)
         {
             try
@@ -32,7 +31,7 @@ namespace ServerCurrency
                 byte[] data = new byte[1024];
                 Socket server = (Socket)result.AsyncState;
                 Socket client = server.EndAccept(result);
-                clientSockets.Add(client);
+                Console.WriteLine($"Произошло подключение: {client.RemoteEndPoint} в {DateTime.Now}");
                 client.BeginReceive(data, 0, data.Length, SocketFlags.None, ClientReciveMessageCallback, new ClientMessage(client, data));
                 server.BeginAccept(AcceptConnectionCallback, server);
             }
@@ -47,13 +46,22 @@ namespace ServerCurrency
                 byte[] data = clientMessage.GetData();
                 client.EndReceive(result);
                 string message = Encoding.UTF8.GetString(data);
-                string[] currencys = message.Split(' ');
-                string answer = CurrencyList.GetValue(currencys[0], currencys[1]).ToString();
-                byte[] senddata = Encoding.UTF8.GetBytes(answer);
-                client.BeginSend(senddata, 0, senddata.Length, SocketFlags.None, ClientSendMessageCallback, client);
-                if (client != null)
+                if (message.StartsWith("Exit"))
                 { 
-                    client.BeginReceive(data, 0, data.Length, SocketFlags.None, ClientReciveMessageCallback, new ClientMessage(client, data));
+                    Console.WriteLine($"Клиент {client.RemoteEndPoint} разорвал соединение в {DateTime.Now}");
+                    client.Close();
+                }
+                else
+                { 
+                    string[] currencys = message.Split(' ');
+                    string answer = CurrencyList.GetValue(currencys[0], currencys[1]).ToString();
+                    byte[] senddata = Encoding.UTF8.GetBytes(answer);
+                    Console.WriteLine($"Клиент {client.RemoteEndPoint} запросил перевод {message.Substring(0,8)}"); 
+                    client.BeginSend(senddata, 0, senddata.Length, SocketFlags.None, ClientSendMessageCallback, client);
+                    if (client != null)
+                    { 
+                        client.BeginReceive(data, 0, data.Length, SocketFlags.None, ClientReciveMessageCallback, new ClientMessage(client, data));
+                    }
                 }
             }
         }
